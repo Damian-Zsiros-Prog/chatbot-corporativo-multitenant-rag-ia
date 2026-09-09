@@ -6,21 +6,41 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "setup": "tsx --env-file=.env.local scripts/setup.ts",
+    "dev:stack": "pnpm setup && pnpm dev",
+    "ingest": "tsx --env-file=.env.local scripts/ingest.ts",
+    "evaluate": "tsx --env-file=.env.local scripts/evaluate.ts",
+    "test:tenant-isolation": "tsx --env-file=.env.local scripts/test-tenant-isolation.ts",
+    "db:studio": "drizzle-kit studio",
+    "ollama:pull": "ollama pull llama3.2 && ollama pull nomic-embed-text"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^12.4.1",
+    "drizzle-orm": "^0.44.5",
+    "jose": "^6.1.0",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   },
   "packageManager": "pnpm@11.20.0"

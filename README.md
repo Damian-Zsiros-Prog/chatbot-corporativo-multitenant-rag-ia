@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chatbot Corporativo Multi-tenant RAG
 
-## Getting Started
+Prototipo académico para consulta de reglamentos y políticas empresariales con IA generativa y RAG. Empresas simuladas de Cartagena.
 
-First, run the development server:
+## Documentación
+
+- [SDD — Diseño de software](./docs/SDD.md)
+- [Matriz de requerimientos](./docs/REQUIREMENTS.md)
+- [Design system](./docs/DESIGN.md)
+
+## Requisitos
+
+- Node.js 20+
+- pnpm 9+
+- [Ollama](https://ollama.com) nativo en Windows (`winget install Ollama.Ollama`)
+- **SQLite** incluido — no requiere Docker ni PostgreSQL
+
+## Inicio rápido
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. Ollama (IA local)
+winget install Ollama.Ollama --accept-package-agreements --accept-source-agreements
+ollama pull llama3.2
+ollama pull nomic-embed-text
+
+# 2. App + base de datos SQLite
+cp .env.example .env.local
+pnpm install
+pnpm db:push
+pnpm db:seed
+pnpm ingest
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Verifica Ollama: [http://localhost:3000/api/ollama/health](http://localhost:3000/api/ollama/health)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Alternativa con Docker
 
-## Learn More
+Ver [docs/DOCKER-SETUP.md](./docs/DOCKER-SETUP.md) (opcional; ya no es necesario).
 
-To learn more about Next.js, take a look at the following resources:
+## Usuarios demo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Contraseña para todos: `demo123`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Empresa | Email | Rol |
+|---------|-------|-----|
+| Logística Caribe | empleado@logistica.demo | empleado |
+| Logística Caribe | rh@logistica.demo | rh |
+| Hotel Bahía Dorada | empleado@hotel.demo | empleado |
+| Hotel Bahía Dorada | rh@hotel.demo | rh |
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Comando | Descripción |
+|---------|-------------|
+| `pnpm db:push` | Crea/actualiza SQLite en `./data/chatbot.db` |
+| `pnpm db:seed` | Carga empresas, usuarios y documentos |
+| `pnpm ingest` | Indexa documentos (chunks + embeddings Ollama) |
+| `pnpm evaluate` | Ejecuta 40 preguntas y genera informe en `docs/results/` |
+| `pnpm db:studio` | UI de Drizzle para inspeccionar datos |
+| `pnpm ollama:pull` | Descarga modelos LLM y embeddings |
+| `pnpm dev` | Servidor de desarrollo Next.js |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estado del proyecto
+
+- [x] Fase 0 — Infra, design tokens, estructura
+- [x] Fase 1 — Schema, seed, documentos simulados, login
+- [x] Fase 2 — Ingestion pipeline (chunking + embeddings)
+- [x] Fase 3 — RAG Core + chat API
+- [x] Fase 4 — RBAC en retrieval
+- [x] Fase 5 — UI chat con citas e inspector
+- [x] Fase 7 — Evaluación automática (40 preguntas)
+
+## Documentos simulados
+
+Ubicados en `storage/seed/`:
+
+- **Logística Caribe:** reglamento, SST, manual bodega, política RH
+- **Hotel Bahía Dorada:** código conducta, vestimenta, check-in, política huéspedes RH

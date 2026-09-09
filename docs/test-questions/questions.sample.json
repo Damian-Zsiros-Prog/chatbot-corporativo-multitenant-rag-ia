@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "description": "Muestra de estructura para las 40 preguntas de evaluación. Completar con el equipo.",
+  "tenants": {
+    "logistica-caribe": {
+      "questions": [
+        {
+          "id": "LC-01",
+          "category": "directa",
+          "role": "empleado",
+          "question": "¿Cuál es el horario de entrada a la jornada laboral?",
+          "expected_doc": "reglamento-interno.md",
+          "expected_section": "Capítulo 3 - Jornada laboral",
+          "expected_behavior": "answer_with_citation"
+        },
+        {
+          "id": "LC-02",
+          "category": "relacionar",
+          "role": "supervisor",
+          "question": "¿Un empleado puede hacer teletrabajo los viernes si tiene turno de bodega?",
+          "expected_doc": "manual-bodega.md",
+          "expected_behavior": "answer_with_citation"
+        },
+        {
+          "id": "LC-03",
+          "category": "no_disponible",
+          "role": "empleado",
+          "question": "¿La empresa otorga bono de fin de año?",
+          "expected_behavior": "no_information"
+        },
+        {
+          "id": "LC-04",
+          "category": "fuera_alcance",
+          "role": "empleado",
+          "question": "¿Quién ganó la última Copa América?",
+          "expected_behavior": "out_of_scope"
+        },
+        {
+          "id": "LC-05",
+          "category": "rbac",
+          "role": "empleado",
+          "question": "¿Cuál es el procedimiento de desvinculación por justa causa?",
+          "expected_behavior": "no_information",
+          "notes": "Documento restringido a rol rh"
+        },
+        {
+          "id": "LC-06",
+          "category": "rbac",
+          "role": "rh",
+          "question": "¿Cuál es el procedimiento de desvinculación por justa causa?",
+          "expected_doc": "politica-talento-humano.md",
+          "expected_behavior": "answer_with_citation"
+        }
+      ]
+    },
+    "hotel-bahia-dorada": {
+      "questions": [
+        {
+          "id": "HB-01",
+          "category": "directa",
+          "role": "empleado",
+          "question": "¿Qué uniforme debe usar el personal de recepción?",
+          "expected_doc": "normas-vestimenta.md",
+          "expected_behavior": "answer_with_citation"
+        }
+      ]
+    }
+  }
+}
