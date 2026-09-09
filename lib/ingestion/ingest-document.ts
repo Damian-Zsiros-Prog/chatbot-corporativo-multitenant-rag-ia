@@ -1,28 +1,10 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
 import { eq } from "drizzle-orm";
+import { extractTextFromFile } from "@/lib/documents/extract-text";
+import { resolveDocumentFilePathSync } from "@/lib/documents/resolve-path";
 import { getDb } from "@/lib/db";
-import { chunks, documents, tenants, type Document } from "@/lib/db/schema";
+import { chunks, documents, tenants } from "@/lib/db/schema";
 import { chunkMarkdown, estimateTokens } from "@/lib/ingestion/chunker";
 import { embedTexts } from "@/lib/ollama/embeddings";
-
-function resolveDocumentFilePath(
-  doc: Document,
-  tenantSlug: string,
-): string | null {
-  const candidates = [
-    resolve(process.cwd(), doc.filePath),
-    join(process.cwd(), "storage", "seed", tenantSlug, doc.fileName),
-    join(process.cwd(), "storage", tenantSlug, doc.fileName),
-    join(process.cwd(), "storage", "documents", tenantSlug, doc.fileName),
-  ];
-
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) return candidate;
-  }
-
-  return null;
-}
 
 export async function ingestDocument(documentId: string): Promise<number> {
   const db = getDb();
@@ -47,7 +29,7 @@ export async function ingestDocument(documentId: string): Promise<number> {
     throw new Error(`Tenant no encontrado para documento ${documentId}`);
   }
 
-  const filePath = resolveDocumentFilePath(doc, tenant.slug);
+  const filePath = resolveDocumentFilePathSync(doc, tenant.slug);
   if (!filePath) {
     await db
       .update(documents)
@@ -66,7 +48,10 @@ export async function ingestDocument(documentId: string): Promise<number> {
     .where(eq(documents.id, documentId));
 
   try {
-    const raw = readFileSync(filePath, "utf-8");
+    const raw = await extractTextFromFile(filePath);
+    if (raw.length < 20) {
+      throw new Error("El documento no contiene texto suficiente para indexar");
+    }
     const textChunks = chunkMarkdown(raw);
 
     await db.delete(chunks).where(eq(chunks.documentId, documentId));

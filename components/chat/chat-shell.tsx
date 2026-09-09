@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { SessionPayload } from "@/lib/auth/session";
+import { DocumentViewerModal } from "@/components/chat/document-viewer-modal";
 import { welcomeMessage } from "@/lib/rag/messages";
 import type { Citation, DocumentStatus } from "@/lib/db/schema";
 
@@ -156,6 +157,9 @@ export function ChatShell({ session, documents }: ChatShellProps) {
     citation: Citation;
     index: number;
   } | null>(null);
+  const [viewerDocumentId, setViewerDocumentId] = useState<string | null>(
+    null,
+  );
 
   const vectorizedCount = useMemo(
     () => documents.filter((d) => d.status === "vectorized").length,
@@ -316,9 +320,11 @@ export function ChatShell({ session, documents }: ChatShellProps) {
             {documents.map((doc) => {
               const badge = statusLabel(doc.status);
               return (
-                <div
+                <button
                   key={doc.id}
-                  className="rounded-md border border-[var(--color-outline-variant)] p-3 bg-[var(--color-surface-container-low)]"
+                  type="button"
+                  onClick={() => setViewerDocumentId(doc.id)}
+                  className="w-full text-left rounded-md border border-[var(--color-outline-variant)] p-3 bg-[var(--color-surface-container-low)] hover:border-[var(--color-citation-text)] transition-colors"
                 >
                   <p className="text-sm font-medium text-[var(--color-on-surface)]">
                     {doc.title}
@@ -328,12 +334,17 @@ export function ChatShell({ session, documents }: ChatShellProps) {
                       {doc.sectionRef}
                     </p>
                   ) : null}
-                  <span
-                    className={`inline-flex mt-2 px-2 py-0.5 rounded text-[11px] font-semibold ${badge.className}`}
-                  >
-                    {badge.text}
-                  </span>
-                </div>
+                  <div className="flex items-center justify-between mt-2 gap-2">
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded text-[11px] font-semibold ${badge.className}`}
+                    >
+                      {badge.text}
+                    </span>
+                    <span className="text-[10px] text-[var(--color-citation-text)]">
+                      Ver documento
+                    </span>
+                  </div>
+                </button>
               );
             })}
           </nav>
@@ -494,6 +505,15 @@ export function ChatShell({ session, documents }: ChatShellProps) {
           </div>
         </aside>
       </div>
+
+      <DocumentViewerModal
+        documentId={viewerDocumentId}
+        onClose={() => setViewerDocumentId(null)}
+        onAskAbout={(prompt) => {
+          setViewerDocumentId(null);
+          setInput(prompt);
+        }}
+      />
     </div>
   );
 }

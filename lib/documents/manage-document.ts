@@ -56,6 +56,7 @@ export async function createDocument(input: {
   allowedRoles: UserRole[];
   fileName: string;
   filePath: string;
+  mimeType?: string;
 }) {
   if (!canManageTenant(input.session, input.tenantId)) {
     throw new Error("Sin permisos para esta empresa");
@@ -74,7 +75,7 @@ export async function createDocument(input: {
       description: input.description ?? null,
       allowedRoles: input.allowedRoles,
       status: "queued",
-      mimeType: "text/markdown",
+      mimeType: input.mimeType ?? "text/markdown",
     })
     .returning();
 

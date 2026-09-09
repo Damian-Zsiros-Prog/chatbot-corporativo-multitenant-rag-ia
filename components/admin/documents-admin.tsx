@@ -7,6 +7,8 @@ import {
   CATEGORY_LABELS,
   DOCUMENT_CATEGORIES,
 } from "@/lib/documents/categories";
+import { DocumentViewerModal } from "@/components/chat/document-viewer-modal";
+import { ACCEPT_UPLOAD } from "@/lib/documents/file-types";
 import type { Document, DocumentCategory, DocumentStatus } from "@/lib/db/schema";
 
 type TenantOption = {
@@ -54,6 +56,9 @@ export function DocumentsAdmin({
   const [sectionRef, setSectionRef] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [viewerDocumentId, setViewerDocumentId] = useState<string | null>(
+    null,
+  );
   const [roles, setRoles] = useState<string[]>([
     "empleado",
     "supervisor",
@@ -171,7 +176,9 @@ export function DocumentsAdmin({
   return (
     <div className="space-y-6">
         <div className="card-surface p-6 space-y-4">
-          <h2 className="text-sm font-semibold">Subir documento (.md)</h2>
+          <h2 className="text-sm font-semibold">
+            Subir documento (MD, TXT, PDF, DOCX, XLSX, XLS)
+          </h2>
           <form onSubmit={handleUpload} className="grid gap-4 md:grid-cols-2">
             {showTenantColumn && (
               <label className="space-y-1 md:col-span-2">
@@ -223,10 +230,10 @@ export function DocumentsAdmin({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-label-sm">Archivo Markdown</span>
+              <span className="text-label-sm">Archivo</span>
               <input
                 type="file"
-                accept=".md,text/markdown"
+                accept={ACCEPT_UPLOAD}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 className="w-full text-sm"
                 required
@@ -324,6 +331,13 @@ export function DocumentsAdmin({
                       <td className="p-3 space-x-2 whitespace-nowrap">
                         <button
                           type="button"
+                          onClick={() => setViewerDocumentId(doc.id)}
+                          className="text-[var(--color-citation-text)] hover:underline"
+                        >
+                          Ver
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleReindex(doc.id)}
                           className="text-[var(--color-citation-text)] hover:underline"
                         >
@@ -345,6 +359,11 @@ export function DocumentsAdmin({
           )}
         </div>
 
+      <DocumentViewerModal
+        documentId={viewerDocumentId}
+        onClose={() => setViewerDocumentId(null)}
+        onAskAbout={() => setViewerDocumentId(null)}
+      />
     </div>
   );
 }
