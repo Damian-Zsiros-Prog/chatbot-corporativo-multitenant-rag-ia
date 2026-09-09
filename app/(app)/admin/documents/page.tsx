@@ -15,8 +15,7 @@ export default async function AdminDocumentsPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="page-container max-w-5xl space-y-6">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             {session.tenantName}
@@ -24,7 +23,6 @@ export default async function AdminDocumentsPage() {
           <h1 className="text-headline-md mt-1">Documentos corporativos</h1>
         </div>
         <DocumentsAdmin session={session} />
-      </div>
     </div>
   );
 }

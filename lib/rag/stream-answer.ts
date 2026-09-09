@@ -1,6 +1,10 @@
 import type { SessionPayload } from "@/lib/auth/session";
 import type { Citation } from "@/lib/db/schema";
 import { getOllamaBaseUrl } from "@/lib/ollama/client";
+import {
+  type ChatHistoryMessage,
+  trimConversationHistory,
+} from "@/lib/rag/conversation-history";
 import { checkScope, detectConversational } from "@/lib/rag/guardrails";
 import {
   contextMatchesQuestion,
@@ -42,16 +46,17 @@ function buildMetadata(
 }
 
 function buildSystemPrompt(tenantName: string): string {
-  return `Eres un asistente corporativo de ${tenantName}. Tu única función es responder preguntas sobre reglamentos, políticas y procedimientos internos usando EXCLUSIVAMENTE el CONTEXTO proporcionado.
+  return `Eres un asistente corporativo de ${tenantName}. Respondes preguntas sobre reglamentos, políticas y procedimientos internos usando EXCLUSIVAMENTE el CONTEXTO documental proporcionado.
 
 Reglas estrictas:
-1. Responde SOLO con información presente en el CONTEXTO.
+1. Responde SOLO con información presente en el CONTEXTO documental.
 2. Cita cada afirmación importante con el número entre corchetes del fragmento, por ejemplo [1] o [2].
 3. Si la respuesta no está en el CONTEXTO, responde de forma breve y amable que no encontraste ese dato en la documentación disponible de ${tenantName} (sin inventar información).
 4. No inventes políticas, plazos, cifras ni interpretaciones legales.
-5. Responde en español, de forma clara y profesional.
+5. Responde en español, de forma clara, profesional y cordial.
 6. No des consejos legales; indica que el usuario debe verificar en el documento oficial.
-7. Si hay varios horarios o cifras, responde exactamente el dato que corresponde a la pregunta (no confundas horarios relacionados).`;
+7. Si hay varios horarios o cifras, responde exactamente el dato que corresponde a la pregunta (no confundas horarios relacionados).
+8. Usa el historial de conversación solo para entender referencias como "eso", "lo anterior" o versiones editadas de una misma pregunta.`;
 }
 
 function toCitations(items: RetrievedChunk[]): Citation[] {
@@ -68,30 +73,41 @@ function buildChatMessages(
   tenantName: string,
   question: string,
   context: string,
+  history: ChatHistoryMessage[] = [],
 ) {
-  return [
+  const chatMessages: Array<{ role: string; content: string }> = [
     { role: "system", content: buildSystemPrompt(tenantName) },
-    {
-      role: "user",
-      content: `CONTEXTO:\n${context}\n\nPREGUNTA:\n${question}`,
-    },
   ];
+
+  for (const item of trimConversationHistory(history)) {
+    chatMessages.push({ role: item.role, content: item.content });
+  }
+
+  chatMessages.push({
+    role: "user",
+    content: `CONTEXTO DOCUMENTAL:\n${context}\n\nPREGUNTA ACTUAL:\n${question}`,
+  });
+
+  return chatMessages;
 }
 
 async function* streamOllamaTokens(
   tenantName: string,
   question: string,
   context: string,
+  history: ChatHistoryMessage[] = [],
+  signal?: AbortSignal,
 ): AsyncGenerator<string> {
   const model = getModelName();
 
   const response = await fetch(`${getOllamaBaseUrl()}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal,
     body: JSON.stringify({
       model,
       stream: true,
-      messages: buildChatMessages(tenantName, question, context),
+      messages: buildChatMessages(tenantName, question, context, history),
     }),
   });
 
@@ -137,17 +153,26 @@ async function* streamFixedText(text: string): AsyncGenerator<string> {
   }
 }
 
+export type StreamAnswerOptions = {
+  history?: ChatHistoryMessage[];
+  signal?: AbortSignal;
+};
+
 export function streamAnswerQuestion(
   question: string,
   session: SessionPayload,
+  options: StreamAnswerOptions = {},
 ): AsyncGenerator<AnswerStreamChunk> {
-  return runStreamAnswerQuestion(question, session);
+  return runStreamAnswerQuestion(question, session, options);
 }
 
 async function* runStreamAnswerQuestion(
   question: string,
   session: SessionPayload,
+  options: StreamAnswerOptions = {},
 ): AsyncGenerator<AnswerStreamChunk> {
+  const history = options.history ?? [];
+  const signal = options.signal;
   const started = Date.now();
   const scope = checkScope(question, session.tenantName);
 
@@ -232,6 +257,8 @@ async function* runStreamAnswerQuestion(
     session.tenantName,
     question,
     context,
+    history,
+    signal,
   )) {
     answer += token;
     yield { kind: "token", content: token };

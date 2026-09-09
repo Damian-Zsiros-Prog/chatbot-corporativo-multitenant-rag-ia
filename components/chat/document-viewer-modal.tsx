@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DocumentPreviewPane } from "@/components/documents/document-preview-pane";
+import { resolveDocumentViewMode } from "@/lib/documents/resolve-view-mode";
+import type { DocumentViewMode, SpreadsheetSheetPreview } from "@/lib/documents/preview-content";
 
 type DocumentMeta = {
   id: string;
@@ -19,6 +22,21 @@ type DocumentViewerModalProps = {
   onAskAbout: (prompt: string) => void;
 };
 
+function viewModeLabel(viewMode: DocumentViewMode): string {
+  switch (viewMode) {
+    case "markdown":
+      return "Markdown";
+    case "iframe":
+      return "PDF";
+    case "html":
+      return "Word";
+    case "spreadsheet":
+      return "Excel";
+    default:
+      return "Texto";
+  }
+}
+
 export function DocumentViewerModal({
   documentId,
   onClose,
@@ -28,7 +46,9 @@ export function DocumentViewerModal({
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<DocumentMeta | null>(null);
   const [content, setContent] = useState("");
-  const [viewMode, setViewMode] = useState<"iframe" | "text" | "html">("text");
+  const [htmlContent, setHtmlContent] = useState<string | undefined>();
+  const [sheets, setSheets] = useState<SpreadsheetSheetPreview[] | undefined>();
+  const [viewMode, setViewMode] = useState<DocumentViewMode>("text");
   const [fileUrl, setFileUrl] = useState("");
 
   useEffect(() => {
@@ -44,7 +64,15 @@ export function DocumentViewerModal({
         }
         setMeta(data.document);
         setContent(data.content ?? "");
-        setViewMode(data.viewMode ?? "text");
+        setHtmlContent(data.htmlContent);
+        setSheets(data.sheets);
+        setViewMode(
+          resolveDocumentViewMode(
+            data.viewMode ?? "text",
+            data.document?.fileName,
+            data.document?.mimeType,
+          ),
+        );
         setFileUrl(data.fileUrl ?? "");
       })
       .catch((err) => {
@@ -56,25 +84,33 @@ export function DocumentViewerModal({
   if (!documentId) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="card-surface w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
-        <div className="flex items-start justify-between gap-4 p-4 border-b border-[var(--color-outline-variant)]">
-          <div>
-            <p className="text-label-sm text-[var(--color-on-surface-variant)]">
-              Documento autorizado
-            </p>
-            <h2 className="text-headline-md mt-1">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50">
+      <div className="card-surface w-full sm:max-w-4xl max-h-[95dvh] sm:max-h-[90vh] flex flex-col overflow-hidden shadow-xl rounded-t-2xl sm:rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 p-4 border-b border-[var(--color-outline-variant)]">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-label-sm text-[var(--color-on-surface-variant)]">
+                Documento autorizado
+              </p>
+              {!loading && !error ? (
+                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-surface-container-low)] text-[var(--color-on-surface-variant)]">
+                  {viewModeLabel(viewMode)}
+                </span>
+              ) : null}
+            </div>
+            <h2 className="text-headline-md mt-1 break-words">
               {meta?.title ?? "Cargando..."}
             </h2>
             {meta?.sectionRef ? (
-              <p className="text-mono-code text-sm mt-1">{meta.sectionRef}</p>
+              <p className="text-mono-code text-sm mt-1 break-all">{meta.sectionRef}</p>
             ) : null}
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex flex-wrap gap-2 shrink-0">
             {meta ? (
               <Button
                 type="button"
                 size="sm"
+                className="min-h-[44px] flex-1 sm:flex-none"
                 onClick={() =>
                   onAskAbout(
                     `Según el documento "${meta.title}", ¿puedes explicarme sus puntos principales?`,
@@ -84,7 +120,7 @@ export function DocumentViewerModal({
                 Preguntar al asistente
               </Button>
             ) : null}
-            <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+            <Button type="button" variant="ghost" size="sm" onClick={onClose} className="min-h-[44px]">
               Cerrar
             </Button>
           </div>
@@ -97,18 +133,16 @@ export function DocumentViewerModal({
             </p>
           ) : error ? (
             <p className="text-sm text-[var(--color-error)]">{error}</p>
-          ) : viewMode === "iframe" && fileUrl ? (
-            <iframe
-              title={meta?.title ?? "Documento"}
-              src={fileUrl}
-              className="w-full h-[60vh] rounded-md border border-[var(--color-outline-variant)] bg-white"
-            />
           ) : (
-            <div className="h-[60vh] overflow-y-auto rounded-md border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] p-4">
-              <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                {content || "Sin contenido de texto extraíble."}
-              </pre>
-            </div>
+            <DocumentPreviewPane
+              viewMode={viewMode}
+              content={content}
+              htmlContent={htmlContent}
+              sheets={sheets}
+              fileUrl={fileUrl}
+              title={meta?.title}
+              fileName={meta?.fileName}
+            />
           )}
         </div>
 

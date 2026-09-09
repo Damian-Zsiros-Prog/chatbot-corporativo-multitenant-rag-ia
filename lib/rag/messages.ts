@@ -1,9 +1,19 @@
+import { ASSISTANT_NAME } from "@/lib/constants";
+
 export function welcomeMessage(tenantName: string): string {
-  return `Hola. Soy el asistente de consultas de ${tenantName}. Estoy aquí para ayudarte con reglamentos, políticas y procedimientos internos. Cuando responda con datos documentales, incluiré referencias a la fuente.`;
+  return `Hola, soy ${ASSISTANT_NAME}, el asistente documental de ${tenantName}. Puedo ayudarte con reglamentos, políticas y procedimientos internos. Cuando responda con datos documentales, incluiré referencias a la fuente.`;
 }
 
 export function greetingMessage(tenantName: string): string {
-  return `¡Hola! Me alegra saludarte. Soy el asistente corporativo de ${tenantName} y puedo orientarte sobre horarios, vacaciones, teletrabajo, seguridad en el trabajo y más. ¿Qué te gustaría consultar hoy?`;
+  return `¡Hola! Me alegra saludarte. Soy ${ASSISTANT_NAME}, el asistente corporativo de ${tenantName}. Estoy muy bien y listo para ayudarte con horarios, vacaciones, teletrabajo, SST y más. ¿Qué te gustaría consultar hoy?`;
+}
+
+export function wellbeingMessage(tenantName: string): string {
+  return `¡Muy bien, gracias por preguntar! Como asistente de ${tenantName} no tengo días buenos o malos, pero sí estoy disponible para orientarte con reglamentos y políticas internas. ¿En qué puedo ayudarte?`;
+}
+
+export function thanksMessage(tenantName: string): string {
+  return `¡Con gusto! Si necesitas algo más sobre ${tenantName}, aquí estoy.`;
 }
 
 export function promptForQuestionMessage(tenantName: string): string {

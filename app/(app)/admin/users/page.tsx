@@ -11,8 +11,7 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="page-container max-w-5xl space-y-6">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             {session.tenantName}
@@ -28,7 +27,6 @@ export default async function AdminUsersPage() {
           fixedTenantSlug={session.tenantSlug}
           title={`Nuevo usuario · ${session.tenantName}`}
         />
-      </div>
     </div>
   );
 }

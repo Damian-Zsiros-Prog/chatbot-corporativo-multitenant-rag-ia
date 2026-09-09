@@ -1,15 +1,18 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { getDb } from "@/lib/db";
 import { conversations, messages } from "@/lib/db/schema";
+import type { ChatHistoryMessage } from "@/lib/rag/conversation-history";
 import { streamAnswerQuestion } from "@/lib/rag/stream-answer";
 import { toUserFacingError } from "@/lib/rag/errors";
 
 const chatSchema = z.object({
   message: z.string().trim().min(1).max(4000),
   conversationId: z.string().uuid().nullish(),
+  editOfMessageId: z.string().uuid().optional(),
+  regenerate: z.boolean().optional(),
 });
 
 function sseEvent(event: string, data: unknown): string {
@@ -51,6 +54,27 @@ async function resolveConversationId(
   return created.id;
 }
 
+async function loadConversationHistory(
+  db: ReturnType<typeof getDb>,
+  conversationId: string,
+): Promise<ChatHistoryMessage[]> {
+  const rows = await db
+    .select({
+      role: messages.role,
+      content: messages.content,
+    })
+    .from(messages)
+    .where(eq(messages.conversationId, conversationId))
+    .orderBy(asc(messages.createdAt));
+
+  return rows
+    .filter((row) => row.role === "user" || row.role === "assistant")
+    .map((row) => ({
+      role: row.role as "user" | "assistant",
+      content: row.content,
+    }));
+}
+
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) {
@@ -67,11 +91,17 @@ export async function POST(request: Request) {
       body.conversationId,
     );
 
-    await db.insert(messages).values({
-      conversationId,
-      role: "user",
-      content: body.message,
-    });
+    const history = await loadConversationHistory(db, conversationId);
+    const question = body.message;
+
+    if (!body.regenerate) {
+      await db.insert(messages).values({
+        conversationId,
+        role: "user",
+        content: question,
+        editOfMessageId: body.editOfMessageId ?? null,
+      });
+    }
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -83,7 +113,10 @@ export async function POST(request: Request) {
         try {
           send("meta", { conversationId });
 
-          for await (const chunk of streamAnswerQuestion(body.message, session)) {
+          for await (const chunk of streamAnswerQuestion(question, session, {
+            history,
+            signal: request.signal,
+          })) {
             if (chunk.kind === "token") {
               send("token", { content: chunk.content });
             } else if (chunk.kind === "result") {
@@ -116,6 +149,10 @@ export async function POST(request: Request) {
             }
           }
         } catch (error) {
+          if (error instanceof Error && error.name === "AbortError") {
+            send("cancelled", { conversationId });
+            return;
+          }
           console.error("Chat stream error:", error);
           send("error", { error: toUserFacingError(error) });
         } finally {

@@ -1,5 +1,14 @@
-export const APP_NAME =
-  process.env.NEXT_PUBLIC_APP_NAME ?? "Chatbot Corporativo RAG";
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "RegulaDesk";
+
+export const APP_TAGLINE =
+  process.env.NEXT_PUBLIC_APP_TAGLINE ??
+  "Inteligencia documental corporativa";
+
+export const ASSISTANT_NAME =
+  process.env.NEXT_PUBLIC_ASSISTANT_NAME ?? "Regula";
+
+export const APP_DESCRIPTION =
+  "Plataforma multi-tenant con RAG para consultar reglamentos, políticas y procedimientos internos con trazabilidad y citas documentales.";
 
 export const DEMO_PASSWORD = "demo123";
 
@@ -15,3 +24,12 @@ export const ALL_ROLES = [
 ] as const;
 
 export const PUBLIC_ROLES = ["empleado", "supervisor", "rh"] as const;
+
+export const QUICK_PROMPTS = [
+  "¿Cuál es el horario de entrada?",
+  "¿Cuántos días de vacaciones tengo?",
+  "Política de teletrabajo",
+  "Normas de seguridad SST",
+  "Código de conducta",
+  "Procedimientos de la empresa",
+] as const;

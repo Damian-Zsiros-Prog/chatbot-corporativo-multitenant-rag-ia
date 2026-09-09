@@ -3,8 +3,10 @@ import {
   greetingMessage,
   outOfScopeMessage,
   promptForQuestionMessage,
+  thanksMessage,
   tooShortMessage,
   topicsHelpMessage,
+  wellbeingMessage,
 } from "@/lib/rag/messages";
 
 const OUT_OF_SCOPE_PATTERNS = [
@@ -24,11 +26,13 @@ const POLICY_KEYWORDS =
   /reglamento|pol[ií]tica|norma|procedimiento|vacaciones|horario|empresa|trabajador|empleado|permiso|desvinculaci[oó]n|uniforme|check-?in|early check-?in|hu[eé]sped|bodega|sst|teletrabajo|montacargas|epp|turno|jornada|conducta|beneficio|bono|justa causa|simulacro|confidencial|propina|vestimenta|dep[oó]sito|compensaci[oó]n|extra|ingreso|salida|tolerancia|tem[aá]tica|tema/i;
 
 const GREETING_PATTERNS = [
-  /^(hola|hey|hi|hello|buenos d[ií]as|buenas tardes|buenas noches|buen d[ií]a)[\s!.?]*$/i,
-  /^hola[\s,]+(c[oó]mo|como|qu[eé] tal|que tal)[\s]*(est[aá]s|estas|tal|va|van)?[\s!.?]*$/i,
-  /^(c[oó]mo|como|qu[eé] tal|que tal)\s+(est[aá]s|estas|va|van)[\s!.?]*$/i,
-  /^gracias[\s!.?]*$/i,
-  /^(ok|vale|entendido|de acuerdo)[\s!.?]*$/i,
+  /^(hola|hey|hi|hello|buenos d[ií]as|buenas tardes|buenas noches|buen d[ií]a)\b/i,
+  /^hola[\s,]+(c[oó]mo|como|qu[eé] tal|que tal)/i,
+  /^(c[oó]mo|como|qu[eé] tal|que tal)\s+(est[aá]s|estas|te va|van|va)\b/i,
+  /^(c[oó]mo|como)\s+(has|te ha)\s+(pasado|ido)\b/i,
+  /^(qu[eé] tal|que tal)(\s+(tu|el)\s+(d[ií]a|día|fin de semana))?\b/i,
+  /^gracias\b/i,
+  /^(ok|vale|entendido|de acuerdo|perfecto|listo)\b/i,
 ];
 
 const META_HELP_PATTERNS = [
@@ -44,8 +48,16 @@ export type GuardrailResult =
   | { allowed: true }
   | { allowed: false; reason: "out_of_scope"; message: string };
 
+export function normalizeUserQuery(query: string): string {
+  return query
+    .trim()
+    .replace(/^[¿¡]+/, "")
+    .replace(/[?.!…]+$/g, "")
+    .trim();
+}
+
 export function hasPolicyIntent(query: string): boolean {
-  const trimmed = query.trim();
+  const trimmed = normalizeUserQuery(query);
   if (POLICY_KEYWORDS.test(trimmed)) return true;
   if (trimmed.includes("?") || trimmed.includes("¿")) return true;
   return /^(cu[aá]nto|cu[aá]l|cu[aá]les|c[oó]mo|como|d[oó]nde|donde|qu[eé]|que|puedo|se puede|hay|existe|cu[aá]ndo|cuando)\b/i.test(
@@ -57,7 +69,19 @@ export function detectConversational(
   query: string,
   tenantName: string,
 ): string | null {
-  const trimmed = query.trim();
+  const trimmed = normalizeUserQuery(query);
+  if (!trimmed) return null;
+
+  if (/^gracias\b/i.test(trimmed)) {
+    return thanksMessage(tenantName);
+  }
+
+  if (
+    /^(c[oó]mo|como)\s+(has|te ha)\s+(pasado|ido)\b/i.test(trimmed) ||
+    /^(c[oó]mo|como|qu[eé] tal|que tal)\s+(est[aá]s|estas|te va)\b/i.test(trimmed)
+  ) {
+    return wellbeingMessage(tenantName);
+  }
 
   if (GREETING_PATTERNS.some((pattern) => pattern.test(trimmed))) {
     return greetingMessage(tenantName);
@@ -75,7 +99,7 @@ export function detectConversational(
 }
 
 export function checkScope(query: string, tenantName: string): GuardrailResult {
-  const trimmed = query.trim();
+  const trimmed = normalizeUserQuery(query);
   if (trimmed.length < 3) {
     return {
       allowed: false,
@@ -90,10 +114,6 @@ export function checkScope(query: string, tenantName: string): GuardrailResult {
       reason: "out_of_scope",
       message: outOfScopeMessage(tenantName),
     };
-  }
-
-  if (POLICY_KEYWORDS.test(trimmed)) {
-    return { allowed: true };
   }
 
   return { allowed: true };

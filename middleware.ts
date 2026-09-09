@@ -9,6 +9,11 @@ const PUBLIC_PATHS = [
   "/api/tenants",
 ];
 
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+}
+
 function getSecret(): Uint8Array {
   const secret = process.env.AUTH_SECRET ?? "dev-secret-change-me";
   return new TextEncoder().encode(secret);
@@ -17,7 +22,7 @@ function getSecret(): Uint8Array {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+  if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
@@ -31,10 +36,11 @@ export async function middleware(request: NextRequest) {
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token) {
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/") {
-      loginUrl.searchParams.set("next", pathname);
+    if (pathname === "/") {
+      return NextResponse.next();
     }
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 

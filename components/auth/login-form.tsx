@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { APP_NAME, DEMO_PASSWORD, LEGAL_DISCLAIMER } from "@/lib/constants";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  DEMO_PASSWORD,
+  LEGAL_DISCLAIMER,
+} from "@/lib/constants";
+import { Logo } from "@/components/brand/logo";
 
 type TenantOption = {
   slug: string;
@@ -83,19 +89,22 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="card-surface w-full max-w-md p-8 space-y-6"
+      className="glass-panel w-full p-5 sm:p-8 space-y-6"
     >
       <div className="space-y-2">
-        <p className="text-label-sm text-[var(--color-on-surface-variant)]">
-          Acceso corporativo
+        <div className="hidden lg:block">
+          <Logo size="sm" showText={false} />
+        </div>
+        <p className="text-label-sm text-[var(--color-citation-text)]">
+          Iniciar sesión
         </p>
         <h1 className="text-display-lg text-[var(--color-on-surface)]">
           {APP_NAME}
         </h1>
         <p className="text-body-md text-[var(--color-on-surface-variant)]">
           {mode === "platform"
-            ? "Administración global de empresas y configuración RAG."
-            : "Consulta de reglamentos y políticas con respaldo documental."}
+            ? "Back-office global · empresas, usuarios y evaluación."
+            : `${APP_TAGLINE} · consulta de reglamentos con respaldo documental.`}
         </p>
       </div>
 

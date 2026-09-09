@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDocumentForUser } from "@/lib/documents/access-document";
-import { extractTextFromFile } from "@/lib/documents/extract-text";
 import { viewModeForMime } from "@/lib/documents/file-types";
+import { buildDocumentPreviewFromBuffer } from "@/lib/documents/preview-content";
+import { readFileSync } from "node:fs";
 import { getSession } from "@/lib/auth/session";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -19,13 +20,27 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const { document, filePath } = result;
-  let content = "";
+  let preview = {
+    viewMode: viewModeForMime(document.mimeType),
+    content: "",
+    htmlContent: undefined as string | undefined,
+    sheets: undefined as
+      | Array<{ name: string; html: string }>
+      | undefined,
+  };
 
   if (filePath) {
     try {
-      content = await extractTextFromFile(filePath);
+      const buffer = readFileSync(filePath);
+      const built = await buildDocumentPreviewFromBuffer(buffer, document.fileName);
+      preview = {
+        viewMode: built.viewMode,
+        content: built.content,
+        htmlContent: built.htmlContent,
+        sheets: built.sheets,
+      };
     } catch {
-      content = "";
+      preview.content = "";
     }
   }
 
@@ -40,8 +55,10 @@ export async function GET(_request: Request, context: RouteContext) {
       fileName: document.fileName,
       chunkCount: document.chunkCount,
     },
-    content,
-    viewMode: viewModeForMime(document.mimeType),
+    content: preview.content,
+    htmlContent: preview.htmlContent,
+    sheets: preview.sheets,
+    viewMode: preview.viewMode,
     fileUrl: `/api/documents/${document.id}/file`,
   });
 }

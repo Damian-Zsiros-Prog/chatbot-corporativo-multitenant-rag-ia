@@ -172,6 +172,7 @@ export const messages = sqliteTable("messages", {
     .references(() => conversations.id, { onDelete: "cascade" }),
   role: text("role").notNull(),
   content: text("content").notNull(),
+  editOfMessageId: text("edit_of_message_id"),
   citations: text("citations", { mode: "json" }).$type<Citation[]>(),
   responseType: text("response_type").$type<ResponseType>(),
   model: text("model"),

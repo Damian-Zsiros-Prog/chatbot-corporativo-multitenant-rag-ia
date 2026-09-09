@@ -18,6 +18,7 @@ export type StoredMessage = {
   citations?: Citation[];
   responseType?: ResponseType;
   latencyMs?: number;
+  editOfMessageId?: string | null;
   createdAt: Date;
 };
 
@@ -98,6 +99,7 @@ export async function getConversationMessages(
       citations: row.citations ?? undefined,
       responseType: row.responseType ?? undefined,
       latencyMs: row.latencyMs ?? undefined,
+      editOfMessageId: row.editOfMessageId ?? undefined,
       createdAt: row.createdAt,
     })),
   };
@@ -119,5 +121,34 @@ export async function deleteUserConversation(
   }
 
   await db.delete(conversations).where(eq(conversations.id, conversationId));
+  return true;
+}
+
+export async function renameUserConversation(
+  session: SessionPayload,
+  conversationId: string,
+  title: string,
+): Promise<boolean> {
+  const trimmed = title.trim();
+  if (trimmed.length < 1 || trimmed.length > 120) {
+    throw new Error("Título inválido");
+  }
+
+  const db = getDb();
+  const [conversation] = await db
+    .select({ id: conversations.id, userId: conversations.userId })
+    .from(conversations)
+    .where(eq(conversations.id, conversationId))
+    .limit(1);
+
+  if (!conversation || conversation.userId !== session.userId) {
+    return false;
+  }
+
+  await db
+    .update(conversations)
+    .set({ title: trimmed, updatedAt: new Date() })
+    .where(eq(conversations.id, conversationId));
+
   return true;
 }

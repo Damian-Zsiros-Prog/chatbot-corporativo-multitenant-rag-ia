@@ -1,7 +1,6 @@
 export default async function SuperAdminAnalyticsPage() {
   return (
-    <div className="p-8">
-      <div className="max-w-2xl mx-auto card-surface p-6 space-y-4">
+    <div className="max-w-2xl mx-auto card-surface p-4 sm:p-6 space-y-4">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             Plataforma
@@ -27,7 +26,6 @@ export default async function SuperAdminAnalyticsPage() {
             Descargar CSV
           </a>
         </div>
-      </div>
     </div>
   );
 }

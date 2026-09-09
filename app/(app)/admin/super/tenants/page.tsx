@@ -2,8 +2,7 @@ import { TenantsAdmin } from "@/components/admin/tenants-admin";
 
 export default function SuperAdminTenantsPage() {
   return (
-    <div className="p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="page-container max-w-5xl space-y-6">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             Plataforma
@@ -15,7 +14,6 @@ export default function SuperAdminTenantsPage() {
           </p>
         </div>
         <TenantsAdmin />
-      </div>
     </div>
   );
 }

@@ -5,8 +5,7 @@ export default async function SuperAdminUsersPage() {
   const session = await getSession();
 
   return (
-    <div className="p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="page-container max-w-5xl space-y-6">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             Plataforma
@@ -22,7 +21,6 @@ export default async function SuperAdminUsersPage() {
           showTenantFilter
           title="Nuevo usuario (elegir empresa)"
         />
-      </div>
     </div>
   );
 }

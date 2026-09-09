@@ -6,8 +6,7 @@ export default async function SuperAdminEvaluationPage() {
   const mdFileName = report?.fileName.replace(".json", ".md");
 
   return (
-    <div className="p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="page-container max-w-3xl space-y-6">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             Plataforma — Fase 7
@@ -101,7 +100,6 @@ export default async function SuperAdminEvaluationPage() {
             <code className="font-mono">pnpm evaluate</code>.
           </div>
         )}
-      </div>
     </div>
   );
 }

@@ -270,8 +270,45 @@ export function TenantsAdmin() {
         {loading ? (
           <p className="p-4 text-sm">Cargando...</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <>
+          <div className="md:hidden divide-y divide-[var(--color-outline-variant)]">
+            {tenants.map((tenant) => (
+              <div key={tenant.id} className="admin-data-card space-y-2">
+                <div>
+                  <p className="font-medium">{tenant.name}</p>
+                  <p className="text-xs text-[var(--color-on-surface-variant)]">
+                    {tenant.sector}
+                  </p>
+                </div>
+                <p className="font-mono text-xs break-all">{tenant.slug}</p>
+                <div className="flex flex-wrap gap-3 text-xs text-[var(--color-on-surface-variant)]">
+                  <span>{tenant.usersCount} usuarios</span>
+                  <span>
+                    {tenant.documentsVectorized}/{tenant.documentsTotal} docs
+                  </span>
+                  <span>{tenant.chunksTotal} chunks</span>
+                </div>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(tenant)}
+                    className="min-h-[44px] text-sm text-[var(--color-citation-text)]"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(tenant)}
+                    className="min-h-[44px] text-sm text-red-600"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block admin-table-scroll">
+            <table className="w-full text-sm min-w-[560px]">
               <thead className="bg-[var(--color-surface-container-low)] text-left">
                 <tr>
                   <th className="p-3">Empresa</th>
@@ -323,6 +360,7 @@ export function TenantsAdmin() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

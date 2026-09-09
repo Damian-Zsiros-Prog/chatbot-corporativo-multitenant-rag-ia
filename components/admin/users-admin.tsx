@@ -367,8 +367,41 @@ export function UsersAdmin({
         {loading ? (
           <p className="p-4 text-sm">Cargando...</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <>
+          <div className="md:hidden divide-y divide-[var(--color-outline-variant)]">
+            {users.map((user) => (
+              <div key={user.id} className="admin-data-card space-y-2">
+                {showTenantColumn ? (
+                  <p className="text-xs text-[var(--color-on-surface-variant)]">
+                    {user.tenantName ?? "—"}
+                  </p>
+                ) : null}
+                <p className="font-medium">{user.name}</p>
+                <p className="font-mono text-xs break-all">{user.email}</p>
+                <span className="inline-flex rounded-full bg-[var(--color-surface-container)] px-2 py-0.5 text-xs">
+                  {ROLE_LABELS[user.role as TenantAssignableRole] ?? user.role}
+                </span>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(user)}
+                    className="min-h-[44px] text-sm text-[var(--color-citation-text)]"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(user)}
+                    className="min-h-[44px] text-sm text-red-600"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block admin-table-scroll">
+            <table className="w-full text-sm min-w-[520px]">
               <thead className="bg-[var(--color-surface-container-low)] text-left">
                 <tr>
                   {showTenantColumn && <th className="p-3">Empresa</th>}
@@ -418,6 +451,7 @@ export function UsersAdmin({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

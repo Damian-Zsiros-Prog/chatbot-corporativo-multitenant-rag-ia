@@ -175,7 +175,7 @@ export function DocumentsAdmin({
 
   return (
     <div className="space-y-6">
-        <div className="card-surface p-6 space-y-4">
+        <div className="card-surface p-4 sm:p-6 space-y-4">
           <h2 className="text-sm font-semibold">
             Subir documento (MD, TXT, PDF, DOCX, XLSX, XLS)
           </h2>
@@ -283,8 +283,65 @@ export function DocumentsAdmin({
           {loading ? (
             <p className="p-4 text-sm">Cargando...</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <>
+            <div className="md:hidden divide-y divide-[var(--color-outline-variant)]">
+              {documents.map((doc) => (
+                <div key={doc.id} className="admin-data-card space-y-3">
+                  {showTenantColumn ? (
+                    <p className="text-xs text-[var(--color-on-surface-variant)]">
+                      {doc.tenantName ?? "—"}
+                    </p>
+                  ) : null}
+                  <div>
+                    <p className="font-medium">{doc.title}</p>
+                    {doc.sectionRef ? (
+                      <p className="text-mono-code text-xs break-all">{doc.sectionRef}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full bg-[var(--color-surface-container-low)] px-2 py-1">
+                      {CATEGORY_LABELS[doc.category as DocumentCategory] ?? doc.category}
+                    </span>
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded text-[11px] font-semibold ${statusBadge(doc.status)}`}
+                    >
+                      {doc.status}
+                    </span>
+                    <span className="text-[var(--color-on-surface-variant)]">
+                      {doc.chunkCount} chunks
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--color-on-surface-variant)] break-words">
+                    Roles: {(doc.allowedRoles as string[]).join(", ")}
+                  </p>
+                  <div className="flex flex-wrap gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setViewerDocumentId(doc.id)}
+                      className="min-h-[44px] text-sm text-[var(--color-citation-text)]"
+                    >
+                      Ver
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleReindex(doc.id)}
+                      className="min-h-[44px] text-sm text-[var(--color-citation-text)]"
+                    >
+                      Reindexar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(doc.id, doc.title)}
+                      className="min-h-[44px] text-sm text-[var(--color-error)]"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="hidden md:block admin-table-scroll">
+              <table className="w-full text-sm min-w-[640px]">
                 <thead className="bg-[var(--color-surface-container-low)] text-left">
                   <tr>
                     {showTenantColumn && <th className="p-3">Empresa</th>}
@@ -356,6 +413,7 @@ export function DocumentsAdmin({
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
 

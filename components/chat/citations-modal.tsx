@@ -17,9 +17,9 @@ export function CitationsModal({
   if (!citations?.length) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50">
       <div
-        className="card-surface w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-xl"
+        className="card-surface w-full sm:max-w-2xl max-h-[90dvh] sm:max-h-[85vh] flex flex-col overflow-hidden shadow-xl rounded-t-2xl sm:rounded-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="citations-modal-title"

@@ -14,8 +14,7 @@ export default async function SuperAdminSettingsPage() {
   ];
 
   return (
-    <div className="p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="page-container max-w-3xl space-y-6">
         <div>
           <p className="text-label-sm text-[var(--color-on-surface-variant)]">
             Plataforma
@@ -37,7 +36,7 @@ export default async function SuperAdminSettingsPage() {
               <span className="text-sm text-[var(--color-on-surface-variant)]">
                 {item.label}
               </span>
-              <code className="text-sm font-mono">{item.value}</code>
+              <code className="text-sm font-mono break-all text-right sm:text-left">{item.value}</code>
             </div>
           ))}
         </div>
@@ -57,7 +56,6 @@ export default async function SuperAdminSettingsPage() {
             Reindexar todos los documentos de todas las empresas
           </p>
         </div>
-      </div>
     </div>
   );
 }

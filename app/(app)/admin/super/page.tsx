@@ -13,45 +13,44 @@ export default async function SuperAdminPage() {
   ]);
 
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
         <div>
-          <p className="text-label-sm text-[var(--color-on-surface-variant)]">
-            Administración de plataforma
+          <p className="text-label-sm text-[var(--color-citation-text)]">
+            Plataforma RegulaDesk
           </p>
-          <h1 className="text-headline-md mt-1">Multi-tenant RAG</h1>
-          <p className="text-body-md text-[var(--color-on-surface-variant)] mt-2">
+          <h1 className="text-2xl font-bold mt-1">Dashboard global</h1>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mt-2">
             Configura empresas, documentación y el agente RAG para todas las
             organizaciones del sistema.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="card-surface p-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="stat-card">
             <p className="text-xs text-[var(--color-on-surface-variant)]">
               Empresas
             </p>
             <p className="text-2xl font-semibold mt-1">{stats.tenantsCount}</p>
           </div>
-          <div className="card-surface p-4">
+          <div className="stat-card">
             <p className="text-xs text-[var(--color-on-surface-variant)]">
               Documentos vectorizados
             </p>
-            <p className="text-2xl font-semibold mt-1">
+            <p className="text-3xl font-bold mt-2">
               {stats.documentsVectorized}/{stats.documentsTotal}
             </p>
           </div>
-          <div className="card-surface p-4">
+          <div className="stat-card">
             <p className="text-xs text-[var(--color-on-surface-variant)]">
               Chunks indexados
             </p>
-            <p className="text-2xl font-semibold mt-1">{stats.chunksTotal}</p>
+            <p className="text-3xl font-bold mt-2">{stats.chunksTotal}</p>
           </div>
-          <div className="card-surface p-4">
+          <div className="stat-card">
             <p className="text-xs text-[var(--color-on-surface-variant)]">
               Evaluación RAG
             </p>
-            <p className="text-2xl font-semibold mt-1">
+            <p className="text-3xl font-bold mt-2 text-[var(--color-secondary)]">
               {evaluation ? `${evaluation.summary.pass_rate}%` : "—"}
             </p>
           </div>
@@ -79,7 +78,7 @@ export default async function SuperAdminPage() {
         </div>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h2 className="text-title-md font-semibold">Empresas registradas</h2>
             <Link
               href="/admin/super/settings"
@@ -104,7 +103,7 @@ export default async function SuperAdminPage() {
                   )}
                 </div>
 
-                <dl className="grid grid-cols-3 gap-2 text-sm">
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
                   <div>
                     <dt className="text-[var(--color-on-surface-variant)]">
                       Usuarios
@@ -145,7 +144,6 @@ export default async function SuperAdminPage() {
             RAG_MIN_SCORE={stats.ragMinScore} · RAG_TOP_K={stats.ragTopK}
           </p>
         </div>
-      </div>
     </div>
   );
 }

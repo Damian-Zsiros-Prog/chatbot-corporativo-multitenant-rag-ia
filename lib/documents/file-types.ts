@@ -39,9 +39,48 @@ export function mimeTypeForFileName(fileName: string): string {
   return EXTENSION_MIME[ext] ?? "application/octet-stream";
 }
 
-export function viewModeForMime(mimeType: string): "iframe" | "text" | "html" {
+export type DocumentViewMode =
+  | "markdown"
+  | "text"
+  | "iframe"
+  | "html"
+  | "spreadsheet";
+
+export function viewModeForExtension(ext: string): DocumentViewMode {
+  switch (ext) {
+    case ".md":
+      return "markdown";
+    case ".txt":
+      return "text";
+    case ".pdf":
+      return "iframe";
+    case ".docx":
+      return "html";
+    case ".xlsx":
+    case ".xls":
+      return "spreadsheet";
+    default:
+      return "text";
+  }
+}
+
+export function viewModeForMime(mimeType: string): DocumentViewMode {
   if (mimeType === "application/pdf") return "iframe";
-  if (mimeType === "text/markdown" || mimeType === "text/plain") return "text";
+  if (mimeType === "text/markdown") return "markdown";
+  if (mimeType === "text/plain") return "text";
+  if (
+    mimeType ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    return "html";
+  }
+  if (
+    mimeType ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    mimeType === "application/vnd.ms-excel"
+  ) {
+    return "spreadsheet";
+  }
   return "text";
 }
 
