@@ -43,5 +43,12 @@
     "tsx": "^4.20.5",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@11.20.0"
+  "packageManager": "pnpm@11.20.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "unrs-resolver"
+    ]
+  }
 }
