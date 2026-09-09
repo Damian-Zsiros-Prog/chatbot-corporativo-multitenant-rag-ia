@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { getLatestEvaluationReport } from "@/lib/evaluation/latest-report";
 
 export default async function SuperAdminEvaluationPage() {
   const report = getLatestEvaluationReport();
+  const mdFileName = report?.fileName.replace(".json", ".md");
 
   return (
     <div className="p-8">
@@ -17,13 +19,18 @@ export default async function SuperAdminEvaluationPage() {
         </div>
 
         <div className="card-surface p-5 space-y-3">
-          <p className="font-semibold">Ejecutar evaluación</p>
+          <p className="font-semibold">Ejecutar evaluación completa</p>
           <code className="block text-sm font-mono bg-[var(--color-surface-container)] p-3 rounded-md">
             pnpm evaluate
           </code>
           <p className="text-sm text-[var(--color-on-surface-variant)]">
             Aislamiento multi-tenant:{" "}
             <code className="font-mono">pnpm test:tenant-isolation</code>
+          </p>
+          <p className="text-xs text-[var(--color-on-surface-variant)]">
+            La evaluación completa (~40 preguntas) debe ejecutarse en local por
+            latencia de Ollama. Los reportes generados aparecen abajo para
+            descarga.
           </p>
         </div>
 
@@ -35,7 +42,7 @@ export default async function SuperAdminEvaluationPage() {
                 {report.fileName}
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-md border border-[var(--color-outline-variant)] p-3">
                 <p className="text-xs text-[var(--color-on-surface-variant)]">
                   Aciertos
@@ -55,10 +62,37 @@ export default async function SuperAdminEvaluationPage() {
               </div>
               <div className="rounded-md border border-[var(--color-outline-variant)] p-3">
                 <p className="text-xs text-[var(--color-on-surface-variant)]">
+                  Latencia p95
+                </p>
+                <p className="text-2xl font-semibold">
+                  {report.summary.p95_latency_ms
+                    ? `${(report.summary.p95_latency_ms / 1000).toFixed(1)}s`
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded-md border border-[var(--color-outline-variant)] p-3">
+                <p className="text-xs text-[var(--color-on-surface-variant)]">
                   Fallos
                 </p>
                 <p className="text-2xl font-semibold">{report.summary.failed}</p>
               </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={`/api/admin/evaluation/reports/${report.fileName}`}
+                className="inline-flex h-10 items-center rounded-md bg-[var(--color-secondary)] px-4 text-sm font-medium text-[var(--color-on-secondary)]"
+              >
+                Descargar JSON
+              </Link>
+              {mdFileName ? (
+                <Link
+                  href={`/api/admin/evaluation/reports/${mdFileName}?format=md`}
+                  className="inline-flex h-10 items-center rounded-md border border-[var(--color-outline-variant)] px-4 text-sm font-medium"
+                >
+                  Descargar informe MD
+                </Link>
+              ) : null}
             </div>
           </div>
         ) : (

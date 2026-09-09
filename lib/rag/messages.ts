@@ -34,16 +34,74 @@ export function llmNoInfoInstruction(tenantName: string): string {
   return `Lo siento, no encontré ese dato en la documentación disponible de ${tenantName}.`;
 }
 
-export function isNoDocumentInfoAnswer(answer: string): boolean {
-  const normalized = answer
+function normalizeAnswerText(answer: string): string {
+  return answer
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "");
+}
+
+export function isNoDocumentInfoAnswer(answer: string): boolean {
+  const normalized = normalizeAnswerText(answer);
 
   return (
     normalized.includes("no encontre") ||
     normalized.includes("no aparece en los documentos") ||
     normalized.includes("no esta disponible en los documentos") ||
-    normalized.includes("no encontre ese dato")
+    normalized.includes("no encontre ese dato") ||
+    normalized.includes("no se menciona") ||
+    normalized.includes("no menciona") ||
+    normalized.includes("no hay informacion sobre") ||
+    normalized.includes("no se proporciona informacion")
   );
+}
+
+const QUESTION_STOPWORDS = new Set([
+  "cual",
+  "cuales",
+  "cuanto",
+  "cuantos",
+  "como",
+  "donde",
+  "quien",
+  "quiene",
+  "hay",
+  "para",
+  "todos",
+  "todas",
+  "empleados",
+  "empleado",
+  "empresa",
+  "otorga",
+  "ofrece",
+  "gratuito",
+  "gratuita",
+  "interna",
+  "interno",
+  "politica",
+  "reglamento",
+]);
+
+function normalizeTerms(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+export function extractQuestionTerms(question: string): string[] {
+  return normalizeTerms(question)
+    .split(/\s+/)
+    .filter((word) => word.length >= 5 && !QUESTION_STOPWORDS.has(word));
+}
+
+export function contextMatchesQuestion(
+  question: string,
+  contextText: string,
+): boolean {
+  const terms = extractQuestionTerms(question);
+  if (terms.length === 0) return true;
+
+  const normalizedContext = normalizeTerms(contextText);
+  return terms.some((term) => normalizedContext.includes(term));
 }

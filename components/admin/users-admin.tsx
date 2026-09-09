@@ -50,6 +50,10 @@ export function UsersAdmin({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(DEMO_PASSWORD);
   const [role, setRole] = useState<TenantAssignableRole>("empleado");
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] = useState<TenantAssignableRole>("empleado");
+  const [editPassword, setEditPassword] = useState("");
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -119,6 +123,81 @@ export function UsersAdmin({
       await loadUsers();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error al crear");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function openEdit(user: UserRow) {
+    setEditingUser(user);
+    setEditName(user.name);
+    setEditRole(user.role as TenantAssignableRole);
+    setEditPassword("");
+    setMessage(null);
+  }
+
+  async function handleUpdate(event: React.FormEvent) {
+    event.preventDefault();
+    if (!editingUser) return;
+
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      const body: Record<string, string> = {
+        name: editName,
+        role: editRole,
+      };
+      if (editPassword.trim()) {
+        body.password = editPassword;
+      }
+
+      const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Error al actualizar usuario");
+      }
+
+      setMessage(`Usuario actualizado: ${data.user.email}`);
+      setEditingUser(null);
+      await loadUsers();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error al actualizar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(user: UserRow) {
+    if (
+      !window.confirm(
+        `¿Eliminar a ${user.name} (${user.email})? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Error al eliminar usuario");
+      }
+
+      setMessage(`Usuario eliminado: ${user.email}`);
+      if (editingUser?.id === user.id) setEditingUser(null);
+      await loadUsers();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error al eliminar");
     } finally {
       setSaving(false);
     }
@@ -205,6 +284,66 @@ export function UsersAdmin({
         ) : null}
       </div>
 
+      {editingUser ? (
+        <div className="card-surface p-6 space-y-4">
+          <h2 className="text-sm font-semibold">
+            Editar usuario — {editingUser.email}
+          </h2>
+          <form onSubmit={handleUpdate} className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-1">
+              <span className="text-label-sm">Nombre</span>
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full h-10 rounded-md border border-[var(--color-outline-variant)] px-3 text-sm"
+                required
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-label-sm">Rol</span>
+              <select
+                value={editRole}
+                onChange={(e) =>
+                  setEditRole(e.target.value as TenantAssignableRole)
+                }
+                className="w-full h-10 rounded-md border border-[var(--color-outline-variant)] px-3 text-sm"
+              >
+                {TENANT_ASSIGNABLE_ROLES.map((item) => (
+                  <option key={item} value={item}>
+                    {ROLE_LABELS[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1 md:col-span-2">
+              <span className="text-label-sm">
+                Nueva contraseña (opcional)
+              </span>
+              <input
+                type="password"
+                value={editPassword}
+                onChange={(e) => setEditPassword(e.target.value)}
+                className="w-full h-10 rounded-md border border-[var(--color-outline-variant)] px-3 text-sm"
+                minLength={6}
+                placeholder="Dejar vacío para no cambiar"
+              />
+            </label>
+            <div className="md:col-span-2 flex gap-2">
+              <Button type="submit" disabled={saving}>
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setEditingUser(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
       <div className="card-surface overflow-hidden">
         <div className="p-4 border-b border-[var(--color-outline-variant)] flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold">
@@ -236,6 +375,7 @@ export function UsersAdmin({
                   <th className="p-3">Nombre</th>
                   <th className="p-3">Email</th>
                   <th className="p-3">Rol</th>
+                  <th className="p-3">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -254,6 +394,24 @@ export function UsersAdmin({
                         {ROLE_LABELS[user.role as TenantAssignableRole] ??
                           user.role}
                       </span>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(user)}
+                          className="text-xs text-[var(--color-citation-text)] hover:underline min-h-[44px] px-2"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(user)}
+                          className="text-xs text-red-600 hover:underline min-h-[44px] px-2"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

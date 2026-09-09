@@ -67,6 +67,118 @@ export async function createTenantUser(input: {
   return created;
 }
 
+export async function updateTenantUser(input: {
+  session: AdminSession;
+  userId: string;
+  name?: string;
+  role?: TenantAssignableRole;
+  password?: string;
+}) {
+  const db = getDb();
+  const [target] = await db
+    .select({
+      id: users.id,
+      tenantId: users.tenantId,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, input.userId))
+    .limit(1);
+
+  if (!target) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  if (!canManageTenant(input.session, target.tenantId)) {
+    throw new Error("Sin permisos para este usuario");
+  }
+
+  if (input.session.userId === target.id) {
+    throw new Error("No puedes modificar tu propio usuario desde aquí");
+  }
+
+  if (target.role === "super_admin") {
+    throw new Error("No se puede modificar un super administrador");
+  }
+
+  const updates: Partial<{
+    name: string;
+    role: UserRole;
+    passwordHash: string;
+  }> = {};
+
+  if (input.name !== undefined) {
+    updates.name = input.name.trim();
+  }
+
+  if (input.role !== undefined) {
+    if (!isTenantAssignableRole(input.role)) {
+      throw new Error("Rol no permitido");
+    }
+    updates.role = input.role as UserRole;
+  }
+
+  if (input.password !== undefined) {
+    if (input.password.length < 6) {
+      throw new Error("La contraseña debe tener al menos 6 caracteres");
+    }
+    updates.passwordHash = await hashPassword(input.password);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new Error("No hay cambios para aplicar");
+  }
+
+  const [updated] = await db
+    .update(users)
+    .set(updates)
+    .where(eq(users.id, input.userId))
+    .returning({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      role: users.role,
+      tenantId: users.tenantId,
+      createdAt: users.createdAt,
+    });
+
+  return updated;
+}
+
+export async function deleteTenantUser(input: {
+  session: AdminSession;
+  userId: string;
+}) {
+  const db = getDb();
+  const [target] = await db
+    .select({
+      id: users.id,
+      tenantId: users.tenantId,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, input.userId))
+    .limit(1);
+
+  if (!target) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  if (!canManageTenant(input.session, target.tenantId)) {
+    throw new Error("Sin permisos para este usuario");
+  }
+
+  if (input.session.userId === target.id) {
+    throw new Error("No puedes eliminar tu propia cuenta");
+  }
+
+  if (target.role === "super_admin") {
+    throw new Error("No se puede eliminar un super administrador");
+  }
+
+  await db.delete(users).where(eq(users.id, input.userId));
+}
+
 export async function resolveTenantIdForAdmin(
   session: AdminSession,
   tenantSlug?: string,

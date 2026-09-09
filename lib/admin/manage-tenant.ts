@@ -42,3 +42,55 @@ export async function createTenant(input: {
 
   return created;
 }
+
+export async function updateTenant(input: {
+  slug: string;
+  name?: string;
+  sector?: string;
+  description?: string | null;
+}) {
+  const db = getDb();
+  const [existing] = await db
+    .select()
+    .from(tenants)
+    .where(eq(tenants.slug, input.slug))
+    .limit(1);
+
+  if (!existing) {
+    throw new Error("Empresa no encontrada");
+  }
+
+  const [updated] = await db
+    .update(tenants)
+    .set({
+      ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+      ...(input.sector !== undefined ? { sector: input.sector.trim() } : {}),
+      ...(input.description !== undefined
+        ? { description: input.description?.trim() || null }
+        : {}),
+    })
+    .where(eq(tenants.id, existing.id))
+    .returning();
+
+  return updated;
+}
+
+export async function deleteTenant(slug: string) {
+  const db = getDb();
+  const [existing] = await db
+    .select({ id: tenants.id, slug: tenants.slug })
+    .from(tenants)
+    .where(eq(tenants.slug, slug))
+    .limit(1);
+
+  if (!existing) {
+    throw new Error("Empresa no encontrada");
+  }
+
+  const protectedSlugs = ["logistica-caribe", "hotel-bahia-dorada"];
+  if (protectedSlugs.includes(existing.slug)) {
+    throw new Error("No se pueden eliminar las empresas demo del proyecto");
+  }
+
+  await db.delete(tenants).where(eq(tenants.id, existing.id));
+}

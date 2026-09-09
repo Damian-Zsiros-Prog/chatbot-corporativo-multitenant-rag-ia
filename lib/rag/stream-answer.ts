@@ -3,6 +3,7 @@ import type { Citation } from "@/lib/db/schema";
 import { getOllamaBaseUrl } from "@/lib/ollama/client";
 import { checkScope, detectConversational } from "@/lib/rag/guardrails";
 import {
+  contextMatchesQuestion,
   isNoDocumentInfoAnswer,
   noAccessibleInfoMessage,
   noDocumentInfoMessage,
@@ -238,7 +239,11 @@ async function* runStreamAnswerQuestion(
 
   answer = answer.trim();
 
-  if (isNoDocumentInfoAnswer(answer)) {
+  const contextText = retrieved.map((item) => item.content).join("\n");
+  const admitsMissingInfo = isNoDocumentInfoAnswer(answer);
+  const lacksRelevantContext = !contextMatchesQuestion(question, contextText);
+
+  if (admitsMissingInfo || lacksRelevantContext) {
     answer = noDocumentInfoMessage(session.tenantName);
     yield {
       kind: "result",

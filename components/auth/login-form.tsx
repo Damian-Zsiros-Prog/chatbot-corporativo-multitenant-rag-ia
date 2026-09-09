@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { APP_NAME, DEMO_PASSWORD } from "@/lib/constants";
+import { APP_NAME, DEMO_PASSWORD, LEGAL_DISCLAIMER } from "@/lib/constants";
 
 type TenantOption = {
   slug: string;
@@ -224,6 +224,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           )}
         </ul>
       </div>
+
+      <p className="text-center text-[11px] text-[var(--color-on-surface-variant)] leading-relaxed">
+        {LEGAL_DISCLAIMER}
+      </p>
     </form>
   );
 }

@@ -74,26 +74,36 @@ Derivada del documento de grado y alineada al SDD (`docs/SDD.md`).
 ## Checklist funcional por módulo (lista de verificación)
 
 ### Auth & Tenancy
-- [ ] Login / logout
-- [ ] Sesión con tenant + rol
-- [ ] Middleware protege rutas
+- [x] Login / logout
+- [x] Sesión con tenant + rol
+- [x] Middleware protege rutas
 
 ### Ingestion
-- [ ] Upload multi-formato
-- [ ] Chunking configurable
-- [ ] Embeddings + estados visuales
+- [x] Upload multi-formato
+- [x] Chunking configurable
+- [x] Embeddings + estados visuales
 
 ### RAG
-- [ ] Retrieval con filtros
-- [ ] Generación streaming
-- [ ] Guardrails alcance
-- [ ] Respuesta sin fundamento controlada
+- [x] Retrieval con filtros
+- [x] Generación streaming
+- [x] Guardrails alcance
+- [x] Respuesta sin fundamento controlada
 
 ### UI
-- [ ] Chat 3-pane
-- [ ] Citation chips + source drawer
-- [ ] Admin dashboard + CRUD docs
+- [x] Chat 3-pane
+- [x] Citation chips + source drawer / inspector
+- [x] Admin dashboard + CRUD docs
+- [x] Historial de conversaciones
+- [x] Responsive mobile con drawers
+- [x] Disclaimer legal en chat
+- [x] Modal de fuentes múltiples
 
 ### Evaluación
-- [ ] 40 preguntas ejecutables
-- [ ] Export resultados (JSON/MD)
+- [x] 40 preguntas ejecutables
+- [x] Export resultados (JSON/MD)
+- [x] Métrica p95 en reportes
+- [x] Descarga de reportes desde admin
+
+### Admin
+- [x] CRUD usuarios (crear, listar, editar, eliminar)
+- [x] CRUD empresas super admin (crear, listar, editar, eliminar)

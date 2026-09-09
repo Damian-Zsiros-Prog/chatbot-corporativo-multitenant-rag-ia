@@ -38,6 +38,9 @@ async function main() {
     `Aciertos: ${summary.passed}/${summary.total} (${summary.pass_rate}%)`,
   );
   console.log(`Latencia promedio: ${summary.avg_latency_ms} ms`);
+  if ("p95_latency_ms" in summary) {
+    console.log(`Latencia p95: ${summary.p95_latency_ms} ms`);
+  }
   console.log("\nPor categoría:");
   for (const [cat, stats] of Object.entries(summary.by_category)) {
     const s = stats as { passed: number; total: number; pass_rate: number };

@@ -2,6 +2,7 @@ import type { SessionPayload } from "@/lib/auth/session";
 import type { Citation } from "@/lib/db/schema";
 import { checkScope, detectConversational } from "@/lib/rag/guardrails";
 import {
+  contextMatchesQuestion,
   isNoDocumentInfoAnswer,
   noAccessibleInfoMessage,
   noDocumentInfoMessage,
@@ -101,9 +102,11 @@ export async function answerQuestion(
     context,
   );
 
-  const citations = toCitations(retrieved);
+  const contextText = retrieved.map((item) => item.content).join("\n");
+  const admitsMissingInfo = isNoDocumentInfoAnswer(answer);
+  const lacksRelevantContext = !contextMatchesQuestion(question, contextText);
 
-  if (isNoDocumentInfoAnswer(answer)) {
+  if (admitsMissingInfo || lacksRelevantContext) {
     return {
       type: "no_information",
       answer: noDocumentInfoMessage(session.tenantName),
@@ -112,6 +115,8 @@ export async function answerQuestion(
       ...metadata,
     };
   }
+
+  const citations = toCitations(retrieved);
 
   return {
     type: "answer",

@@ -215,13 +215,22 @@ export async function runEvaluation(
   return results;
 }
 
+function percentile(values: number[], p: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = Math.ceil((p / 100) * sorted.length) - 1;
+  return sorted[Math.max(0, index)];
+}
+
 export function summarizeResults(results: EvalResult[]) {
   const total = results.length;
   const passed = results.filter((r) => r.passed).length;
   const failed = total - passed;
+  const latencies = results.map((r) => r.latency_ms);
   const avgLatency = Math.round(
-    results.reduce((sum, r) => sum + r.latency_ms, 0) / total,
+    latencies.reduce((sum, value) => sum + value, 0) / total,
   );
+  const p95Latency = Math.round(percentile(latencies, 95));
 
   const byCategory = new Map<string, { passed: number; total: number }>();
   for (const result of results) {
@@ -240,6 +249,7 @@ export function summarizeResults(results: EvalResult[]) {
     failed,
     pass_rate: Number(((passed / total) * 100).toFixed(1)),
     avg_latency_ms: avgLatency,
+    p95_latency_ms: p95Latency,
     by_category: Object.fromEntries(
       [...byCategory.entries()].map(([category, stats]) => [
         category,
@@ -270,6 +280,7 @@ export function renderMarkdownReport(
     `| Incorrectas | ${summary.failed} |`,
     `| **Tasa de acierto** | **${summary.pass_rate}%** |`,
     `| Latencia promedio | ${summary.avg_latency_ms} ms |`,
+    `| Latencia p95 | ${"p95_latency_ms" in summary ? summary.p95_latency_ms : "—"} ms |`,
     "",
     "## Resultados por categoría",
     "",

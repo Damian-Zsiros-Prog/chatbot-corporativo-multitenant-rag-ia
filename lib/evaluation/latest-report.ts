@@ -7,6 +7,7 @@ export type EvaluationSummary = {
   failed: number;
   pass_rate: number;
   avg_latency_ms: number;
+  p95_latency_ms?: number;
   by_category: Record<
     string,
     { passed: number; total: number; pass_rate: number }
