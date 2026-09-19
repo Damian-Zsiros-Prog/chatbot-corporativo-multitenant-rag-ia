@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789827159185,
+      "tag": "0000_steep_ma_gnuci",
+      "breakpoints": true
+    }
+  ]
+}

@@ -8,6 +8,8 @@ import type { ChatHistoryMessage } from "@/lib/rag/conversation-history";
 import { streamAnswerQuestion } from "@/lib/rag/stream-answer";
 import { toUserFacingError } from "@/lib/rag/errors";
 
+export const maxDuration = 60;
+
 const chatSchema = z.object({
   message: z.string().trim().min(1).max(4000),
   conversationId: z.string().uuid().nullish(),

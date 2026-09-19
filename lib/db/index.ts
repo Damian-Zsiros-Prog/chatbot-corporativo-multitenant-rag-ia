@@ -17,6 +17,25 @@ function ensureDatabaseFile(path: string): void {
   }
 }
 
+function tableColumns(db: Database.Database, table: string): Set<string> {
+  const rows = db.pragma(`table_info(${table})`) as Array<{ name: string }>;
+  return new Set(rows.map((row) => row.name));
+}
+
+function addColumnIfMissing(
+  db: Database.Database,
+  table: string,
+  column: string,
+  definition: string,
+): void {
+  if (tableColumns(db, table).has(column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
+function migrateSqlite(db: Database.Database): void {
+  addColumnIfMissing(db, "messages", "edit_of_message_id", "text");
+}
+
 let sqlite: Database.Database | null = null;
 let database: BetterSQLite3Database<typeof schema> | null = null;
 
@@ -36,6 +55,7 @@ export function getDb(): BetterSQLite3Database<typeof schema> {
   sqlite = new Database(path);
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");
+  migrateSqlite(sqlite);
 
   database = drizzle(sqlite, { schema });
   return database;
